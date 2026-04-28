@@ -12,6 +12,8 @@ import {
   Settings,
   ChevronLeft,
   Menu,
+  Key,
+  Star,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,10 +24,12 @@ import { APP_NAME } from "@/lib/constants";
 const adminLinks = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Productos", icon: Package },
+  { href: "/admin/inventory", label: "Credenciales", icon: Key },
   { href: "/admin/orders", label: "Pedidos", icon: ShoppingCart },
   { href: "/admin/clients", label: "Clientes", icon: Users },
   { href: "/admin/reports", label: "Reportes", icon: BarChart3 },
   { href: "/admin/coupons", label: "Cupones", icon: Tag },
+  { href: "/admin/offers", label: "Super Ofertas", icon: Star },
 ];
 
 function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {

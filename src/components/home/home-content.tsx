@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Tv,
@@ -14,11 +14,15 @@ import {
   Shield,
   Zap,
   Headphones,
+  ChevronLeft,
+  ChevronRight,
+  TrendingUp,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/products/product-card";
-import { DEMO_PRODUCTS, DEMO_CATEGORIES } from "@/lib/demo-data";
+import { DEMO_PRODUCTS, DEMO_CATEGORIES, DEMO_FEATURED_OFFERS } from "@/lib/demo-data";
 import { useSearchParams } from "next/navigation";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -29,6 +33,149 @@ const iconMap: Record<string, React.ReactNode> = {
   Gift: <Gift className="h-6 w-6" />,
   Globe: <Globe className="h-6 w-6" />,
 };
+
+function SuperOffersCarousel() {
+  const activeOffers = DEMO_FEATURED_OFFERS.filter((o) => o.is_active);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const goNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % activeOffers.length);
+  }, [activeOffers.length]);
+
+  const goPrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + activeOffers.length) % activeOffers.length);
+  }, [activeOffers.length]);
+
+  useEffect(() => {
+    if (activeOffers.length <= 1) return;
+    const interval = setInterval(goNext, 5000);
+    return () => clearInterval(interval);
+  }, [activeOffers.length, goNext]);
+
+  if (activeOffers.length === 0) return null;
+
+  const offer = activeOffers[currentIndex];
+  const product = offer.product || DEMO_PRODUCTS.find((p) => p.id === offer.product_id);
+
+  return (
+    <section className="container mx-auto px-4 pt-8">
+      <div className="flex items-center gap-2 mb-4">
+        <Star className="h-5 w-5 text-yellow-500" />
+        <h2 className="text-2xl font-bold">Super Ofertas</h2>
+      </div>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white">
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="relative flex flex-col md:flex-row items-center gap-6 p-6 md:p-10">
+          {product?.image_url && (
+            <div className="w-full md:w-64 h-40 md:h-48 rounded-xl overflow-hidden shrink-0">
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <div className="flex-1 text-center md:text-left space-y-3">
+            <Badge className="bg-white/20 text-white border-white/30">
+              {offer.badge_text || "Oferta"}
+            </Badge>
+            <h3 className="text-2xl md:text-3xl font-bold">{offer.title}</h3>
+            {offer.subtitle && (
+              <p className="text-white/80 text-sm md:text-base max-w-lg">{offer.subtitle}</p>
+            )}
+            <div className="flex items-center gap-3 justify-center md:justify-start">
+              {product && (
+                <>
+                  <span className="text-3xl font-bold">${product.price.toFixed(2)}</span>
+                  {product.compare_at_price && (
+                    <span className="text-lg text-white/50 line-through">
+                      ${product.compare_at_price.toFixed(2)}
+                    </span>
+                  )}
+                  {product.compare_at_price && (
+                    <Badge className="bg-red-500 text-white">
+                      -{Math.round((1 - product.price / product.compare_at_price) * 100)}%
+                    </Badge>
+                  )}
+                </>
+              )}
+            </div>
+            <div>
+              <Button
+                size="lg"
+                className="bg-white text-purple-900 hover:bg-white/90"
+                render={<Link href={product ? `/product/${product.slug}` : "#"} />}
+              >
+                Ver Oferta <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {activeOffers.length > 1 && (
+          <>
+            <button
+              onClick={goPrev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={goNext}
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-colors"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+              {activeOffers.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`h-2 rounded-full transition-all ${
+                    idx === currentIndex ? "bg-white w-6" : "bg-white/40 w-2"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MostSoldSection() {
+  const topProducts = useMemo(() => {
+    return [...DEMO_PRODUCTS]
+      .sort((a, b) => {
+        const scoreA = (a.is_featured ? 50 : 0) + a.stock + (a.compare_at_price ? 20 : 0);
+        const scoreB = (b.is_featured ? 50 : 0) + b.stock + (b.compare_at_price ? 20 : 0);
+        return scoreB - scoreA;
+      })
+      .slice(0, 5);
+  }, []);
+
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-6">
+        <TrendingUp className="h-5 w-5 text-orange-500" />
+        <h2 className="text-2xl font-bold">Lo Más Vendido</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {topProducts.map((product, idx) => (
+          <div key={product.id} className="relative">
+            {idx < 3 && (
+              <div className="absolute -top-2 -left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold h-7 w-7 rounded-full flex items-center justify-center shadow-lg">
+                #{idx + 1}
+              </div>
+            )}
+            <ProductCard product={product} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export function HomeContent() {
   const searchParams = useSearchParams();
@@ -141,6 +288,9 @@ export function HomeContent() {
         </section>
       )}
 
+      {/* Super Offers Carousel */}
+      {!categoryFilter && !searchQuery && <SuperOffersCarousel />}
+
       <div className="container mx-auto px-4 py-12 space-y-12">
         {/* Categories */}
         <section>
@@ -172,6 +322,9 @@ export function HomeContent() {
             ))}
           </div>
         </section>
+
+        {/* Most Sold */}
+        {!activeCategory && !searchQuery && <MostSoldSection />}
 
         {/* Featured */}
         {!activeCategory && !searchQuery && (

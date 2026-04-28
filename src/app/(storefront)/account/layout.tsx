@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Package, Heart, Settings } from "lucide-react";
+import { User, Package, Heart, Settings, Key } from "lucide-react";
 
 const accountLinks = [
   { href: "/account/profile", label: "Mi Perfil", icon: User },
   { href: "/account/orders", label: "Mis Pedidos", icon: Package },
+  { href: "/account/credentials", label: "Mis Credenciales", icon: Key },
   { href: "/account/favorites", label: "Favoritos", icon: Heart },
 ];
 

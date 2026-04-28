@@ -65,10 +65,13 @@ export interface ProductVariant {
   compare_at_price: number | null;
   stock: number;
   sku: string | null;
+  duration_months: number | null;
+  warranty_days: number | null;
   attributes: Record<string, unknown>;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  credential_count?: number;
 }
 
 export interface CartItem {
@@ -222,5 +225,21 @@ export interface Inventory {
   is_sold: boolean;
   sold_at: string | null;
   order_id: string | null;
+  order_item_id: string | null;
   created_at: string;
+}
+
+export interface FeaturedOffer {
+  id: string;
+  product_id: string;
+  title: string | null;
+  subtitle: string | null;
+  badge_text: string | null;
+  sort_order: number;
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+  updated_at: string;
+  product?: Product;
 }

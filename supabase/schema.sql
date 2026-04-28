@@ -84,6 +84,8 @@ CREATE TABLE product_variants (
   compare_at_price DECIMAL(10,2),
   stock INT DEFAULT 0,
   sku TEXT,
+  duration_months INT,
+  warranty_days INT,
   attributes JSONB DEFAULT '{}',
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -101,7 +103,25 @@ CREATE TABLE inventory (
   is_sold BOOLEAN DEFAULT false,
   sold_at TIMESTAMPTZ,
   order_id UUID,
+  order_item_id UUID,
   created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- FEATURED OFFERS (admin-configurable carousel)
+-- ============================================
+CREATE TABLE featured_offers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  title TEXT,
+  subtitle TEXT,
+  badge_text TEXT DEFAULT 'Oferta',
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  starts_at TIMESTAMPTZ,
+  ends_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================
@@ -393,6 +413,13 @@ CREATE POLICY "Admins can manage coupons" ON coupons FOR ALL USING (
 -- Sales Analytics
 ALTER TABLE sales_analytics ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins can view analytics" ON sales_analytics FOR SELECT USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- Featured Offers
+ALTER TABLE featured_offers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Featured offers viewable by everyone" ON featured_offers FOR SELECT USING (is_active = true);
+CREATE POLICY "Admins can manage featured offers" ON featured_offers FOR ALL USING (
   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
 );
 
